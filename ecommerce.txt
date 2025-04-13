@@ -1,0 +1,213 @@
+CREATE TABLE IF NOT EXISTS `ecommerce`.`Cliente` (
+  `idCliente` INT NOT NULL AUTO_INCREMENT,
+  `Pnome` VARCHAR(10) NOT NULL,
+  `Nome do Meio` VARCHAR(3) NULL,
+  `Sobrenome` VARCHAR(20) NULL,
+  `CPF` CHAR(11) NOT NULL,
+  `Endereço` VARCHAR(45) NULL,
+  `Data de Nascimento` DATE NOT NULL,
+  PRIMARY KEY (`idCliente`),
+  UNIQUE INDEX `CPF_UNIQUE` (`CPF` ASC) VISIBLE)
+
+CREATE TABLE IF NOT EXISTS `ecommerce`.`Pagamento` (
+  `idPagamento` INT NOT NULL,
+  `Tipo` VARCHAR(45) NULL,
+  `Detalhe` VARCHAR(45) NULL,
+  `Cliente_idCliente` INT NOT NULL,
+  PRIMARY KEY (`idPagamento`, `Cliente_idCliente`),
+  INDEX `fk_Pagamento_Cliente1_idx` (`Cliente_idCliente` ASC) VISIBLE,
+  CONSTRAINT `fk_Pagamento_Cliente1`
+    FOREIGN KEY (`Cliente_idCliente`)
+    REFERENCES `ecommerce`.`Cliente` (`idCliente`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+
+CREATE TABLE IF NOT EXISTS `ecommerce`.`Pedido` (
+  `idPedido` INT NOT NULL AUTO_INCREMENT,
+  `Status do Pedido` ENUM('Processando', 'Entregue', 'Enviado', 'Em andamento') NULL DEFAULT 'Processando',
+  `descrição` VARCHAR(45) NULL,
+  `Cliente_idCliente` INT NOT NULL,
+  `Frete` FLOAT NULL,
+  `Entrega_idEntrega` INT NOT NULL,
+  PRIMARY KEY (`idPedido`, `Cliente_idCliente`, `Entrega_idEntrega`),
+  INDEX `fk_Pedido_Cliente1_idx` (`Cliente_idCliente` ASC) VISIBLE,
+  INDEX `fk_Pedido_Entrega1_idx` (`Entrega_idEntrega` ASC) VISIBLE,
+  CONSTRAINT `fk_Pedido_Cliente1`
+    FOREIGN KEY (`Cliente_idCliente`)
+    REFERENCES `ecommerce`.`Cliente` (`idCliente`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Pedido_Entrega1`
+    FOREIGN KEY (`Entrega_idEntrega`)
+    REFERENCES `ecommerce`.`Entrega` (`idEntrega`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+
+CREATE TABLE IF NOT EXISTS `ecommerce`.`Entrega` (
+  `idEntrega` INT NOT NULL,
+  `Status Entrega` VARCHAR(45) NULL,
+  `Código de Rastreio` VARCHAR(45) NULL,
+  `Observação` VARCHAR(45) NULL,
+  PRIMARY KEY (`idEntrega`))
+
+CREATE TABLE IF NOT EXISTS `ecommerce`.`Relação produto/pedido` (
+  `Produto_idProduto` INT NOT NULL,
+  `Pedido_idPedido` INT NOT NULL,
+  `Quantidade` VARCHAR(45) NOT NULL,
+  `Status` ENUM('disponível', 'sem estoque') NULL DEFAULT 'disponível',
+  PRIMARY KEY (`Produto_idProduto`, `Pedido_idPedido`, `Quantidade`),
+  INDEX `fk_Produto_has_Pedido_Pedido1_idx` (`Pedido_idPedido` ASC) VISIBLE,
+  INDEX `fk_Produto_has_Pedido_Produto1_idx` (`Produto_idProduto` ASC) VISIBLE,
+  CONSTRAINT `fk_Produto_has_Pedido_Produto1`
+    FOREIGN KEY (`Produto_idProduto`)
+    REFERENCES `ecommerce`.`Produto` (`idProduto`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Produto_has_Pedido_Pedido1`
+    FOREIGN KEY (`Pedido_idPedido`)
+    REFERENCES `ecommerce`.`Pedido` (`idPedido`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+
+CREATE TABLE IF NOT EXISTS `ecommerce`.`Produto` (
+  `idProduto` INT NOT NULL,
+  `Categoria` VARCHAR(45) NULL,
+  `Descrição` VARCHAR(45) NULL,
+  `Valor` VARCHAR(45) NULL,
+  PRIMARY KEY (`idProduto`))
+
+CREATE TABLE IF NOT EXISTS `ecommerce`.`Pertence` (
+  `Estoque_idEstoque` INT NOT NULL,
+  `Produto_idProduto` INT NOT NULL,
+  `Quantidade` INT NULL,
+  PRIMARY KEY (`Estoque_idEstoque`, `Produto_idProduto`),
+  INDEX `fk_Estoque_has_Produto_Produto1_idx` (`Produto_idProduto` ASC) VISIBLE,
+  INDEX `fk_Estoque_has_Produto_Estoque1_idx` (`Estoque_idEstoque` ASC) VISIBLE,
+  CONSTRAINT `fk_Estoque_has_Produto_Estoque1`
+    FOREIGN KEY (`Estoque_idEstoque`)
+    REFERENCES `ecommerce`.`Estoque` (`idEstoque`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Estoque_has_Produto_Produto1`
+    FOREIGN KEY (`Produto_idProduto`)
+    REFERENCES `ecommerce`.`Produto` (`idProduto`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+
+CREATE TABLE IF NOT EXISTS `ecommerce`.`Estoque` (
+  `idEstoque` INT NOT NULL,
+  `Local` VARCHAR(45) NULL,
+  PRIMARY KEY (`idEstoque`))
+
+CREATE TABLE IF NOT EXISTS `ecommerce`.`Disponibiliza` (
+  `Fornecedor_idFornecedor` INT NOT NULL,
+  `Produto_idProduto` INT NOT NULL,
+  PRIMARY KEY (`Fornecedor_idFornecedor`, `Produto_idProduto`),
+  INDEX `fk_Fornecedor_has_Produto_Produto1_idx` (`Produto_idProduto` ASC) VISIBLE,
+  INDEX `fk_Fornecedor_has_Produto_Fornecedor_idx` (`Fornecedor_idFornecedor` ASC) VISIBLE,
+  CONSTRAINT `fk_Fornecedor_has_Produto_Fornecedor`
+    FOREIGN KEY (`Fornecedor_idFornecedor`)
+    REFERENCES `ecommerce`.`Fornecedor` (`idFornecedor`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Fornecedor_has_Produto_Produto1`
+    FOREIGN KEY (`Produto_idProduto`)
+    REFERENCES `ecommerce`.`Produto` (`idProduto`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+
+CREATE TABLE IF NOT EXISTS `ecommerce`.`Fornecedor` (
+  `idFornecedor` INT NOT NULL,
+  `Razão Social` VARCHAR(45) NULL,
+  `CNPJ` VARCHAR(45) NULL,
+  PRIMARY KEY (`idFornecedor`),
+  UNIQUE INDEX `CNPJ_UNIQUE` (`CNPJ` ASC) VISIBLE)
+
+CREATE TABLE IF NOT EXISTS `ecommerce`.`Produtos por vendedor(terceiro)` (
+  `Terceiro - Vendedor_idTerceiro - Vendedor` INT NOT NULL,
+  `Produto_idProduto` INT NOT NULL,
+  `Quantidade` INT NULL,
+  PRIMARY KEY (`Terceiro - Vendedor_idTerceiro - Vendedor`, `Produto_idProduto`),
+  INDEX `fk_Terceiro - Vendedor_has_Produto_Produto1_idx` (`Produto_idProduto` ASC) VISIBLE,
+  INDEX `fk_Terceiro - Vendedor_has_Produto_Terceiro - Vendedor1_idx` (`Terceiro - Vendedor_idTerceiro - Vendedor` ASC) VISIBLE,
+  CONSTRAINT `fk_Terceiro - Vendedor_has_Produto_Terceiro - Vendedor1`
+    FOREIGN KEY (`Terceiro - Vendedor_idTerceiro - Vendedor`)
+    REFERENCES `ecommerce`.`Terceiro - Vendedor` (`idTerceiro - Vendedor`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Terceiro - Vendedor_has_Produto_Produto1`
+    FOREIGN KEY (`Produto_idProduto`)
+    REFERENCES `ecommerce`.`Produto` (`idProduto`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+
+CREATE TABLE IF NOT EXISTS `ecommerce`.`Terceiro - Vendedor` (
+  `idTerceiro - Vendedor` INT NOT NULL,
+  `Razão Social` VARCHAR(45) NOT NULL,
+  `Nome Fantasia` VARCHAR(45) NULL,
+  `CNPJ` VARCHAR(45) NULL,
+  `Local` VARCHAR(45) NULL,
+  PRIMARY KEY (`idTerceiro - Vendedor`))
+
+
+Quantos pedidos foram feitos por cada cliente?
+
+SELECT
+    c.idCliente,
+    c.Pnome,
+    c.Sobrenome,
+    COUNT(p.idPedido) AS NumeroDePedidos
+FROM
+    Cliente c
+LEFT JOIN
+    Pedido p ON c.idCliente = p.Cliente_idCliente
+GROUP BY
+    c.idCliente, c.Pnome, c.Sobrenome
+ORDER BY
+    NumeroDePedidos DESC;
+
+Algum vendedor também é fornecedor?
+
+SELECT
+    v.idTerceiro AS VendedorID,
+    v.RazãoSocial AS VendedorRazaoSocial,
+    f.idFornecedor AS FornecedorID,
+    f.RazãoSocial AS FornecedorRazaoSocial
+FROM
+    Terceiro AS v
+INNER JOIN
+    Fornecedor AS f ON v.CNPJ = f.CNPJ;
+
+Relação de produtos fornecedores e estoques.
+
+SELECT
+    p.idProduto,
+    p.Categoria,
+    p.Descrição AS DescricaoProduto,
+    f.idFornecedor,
+    f.RazãoSocial AS RazaoSocialFornecedor,
+    e.idEstoque,
+    e.Local AS LocalEstoque,
+    pert.Quantidade AS QuantidadeEstoque
+FROM
+    Produto p
+INNER JOIN
+    Disponibiliza d ON p.idProduto = d.Produto_idProduto
+INNER JOIN
+    Fornecedor f ON d.Fornecedor_idFornecedor = f.idFornecedor
+INNER JOIN
+    Pertence pert ON p.idProduto = pert.Produto_idProduto
+INNER JOIN
+    Estoque e ON pert.Estoque_idEstoque = e.idEstoque;
+
+Relação de nomes dos fornecedores e nomes dos produtos.
+
+SELECT
+    f.RazãoSocial AS NomeFornecedor,
+    p.Categoria AS NomeProduto
+FROM
+    Fornecedor f
+INNER JOIN
+    Disponibiliza d ON f.idFornecedor = d.Fornecedor_idFornecedor
+INNER JOIN
+    Produto p ON d.Produto_idProduto = p.idProduto;
